@@ -1,0 +1,3 @@
+# Individualized Deep Dynamic Modeling Repository
+
+This is the [Julia](https://julialang.org) implementation of the individualized deep dynamic model as introduced in this [paper](http://dx.doi.org/10.1038/s41598-022-11650-6) and extended to intra-individual sub-periods in a subsequent [publication](https://arxiv.org/abs/2202.07403). The [Jupyter Notebook](notebooks/subperiods.ipynb) demonstrates the approach with simulated data on a high level, many details about the implementation are documented in the `src/` folder.
