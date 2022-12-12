@@ -217,7 +217,7 @@ function spWindows_loss(
 end
 
 """
-`loss_odenet_sp()` is the function which is differentiated. It is necessary to have the ODEp calculation within this function, otherwise the loss cannot be reduced.
+`loss()` is the function which is differentiated. It is necessary to have the ODEp calculation within this function, otherwise the loss cannot be reduced.
 # Arguments
 - `prob::ODEProblem`: The base problem which receives the ODE parameters from ODEnet.
 - `x1::AbstractArray`: 1×T matrix of mental health data.
@@ -290,8 +290,13 @@ function train_node_sp(ODEnet, data::AbstractVector, ode_problem::ODEProblem, te
         # The TRAINING LOOP
         for i in learning_index
             # These calls to the global environmet below are necessary (afaIk) because of the convoluted algorithm sturcture with cur_affect which looks for a t.
-            global z_mh, z_sl, t , W, obs = data[i].predVAE[1,:]' , data[i].predVAE[2,:]', data[i].data.t, data[i].data.Wtrain, data[i].data.mnpvisno # W needs to be loaded globally since it is part of the update_stressor_level!()
-            # global z_mh, z_sl, t , W, obs = data[i].predVAE[1,:]' , data[i].predVAE[2,:]', data[i].data.t, data[i].data.W, data[i].data.mnpvisno # W needs to be loaded globally since it is part of the update_stressor_level!()
+            
+            if args.prediction_mode
+                global z_mh, z_sl, t , W, obs = data[i].predVAE[1,:]' , data[i].predVAE[2,:]', data[i].data.t, data[i].data.Wtrain, data[i].data.mnpvisno 
+            else
+                global z_mh, z_sl, t , W, obs = data[i].predVAE[1,:]' , data[i].predVAE[2,:]', data[i].data.t, data[i].data.W, data[i].data.mnpvisno # W needs to be loaded globally since it is part of the update_stressor_level!()
+            end
+            
             global cur_prob = remake(ode_problem, callback = PresetTimeCallback(t, update_stressor_level!, save_positions=(false,false))) # this might worrk as local as well?
             local respondent_ranges = split_observation_period_at_first_baseline(obs, W)
 
@@ -379,11 +384,26 @@ function train_node_sp(data::AbstractArray, ode_problem::ODEProblem, test_idx::A
     return data, ODEnet, losses_during_training
 end
 
+# ------
+# Plotting
+# ------
 """
-plot_subject_sp() is a non-generic convenience function for instpeciting the results visually.
-It requires you to have a base_prob and update_stressor_level! in the global namespace.
+'plot_subject_sp()' displays the fitted trajectories in the latent space.
+# Arguments
+- `n::Integer`: the number of elements to compute.
+# Examples
+```julia
+julia> plot_subject_sp(ODEnet, d, 1)
+Output
+```
+# Debugging
+```julia
+julia> simdata = d
+julia> index = 1
+julia> ylim, markersize, linewidth, savepath, filetype = (-1, 2.5), 8, 3, nothing, ".png"
+```
 """
-function plot_subject_sp(ODEnet, simdata, index, base_prob; savepath = nothing, ylim=(-1, 2.5))
+function plot_subject_sp(ODEnet, simdata, index; savepath = nothing, ylim=(-1, 2.5), filetype = ".png", markersize=8, linewidth=3)
 
     global z_mh, z_sl, t, W, obs = simdata[index].predVAE[1,:], simdata[index].predVAE[2,:], simdata[index].data.t, simdata[index].data.W, simdata[index].data.mnpvisno;
     ranges = moduleODEnet_sp.split_observation_period_at_first_baseline(obs, W)
@@ -391,17 +411,37 @@ function plot_subject_sp(ODEnet, simdata, index, base_prob; savepath = nothing, 
     ODEp_sw = [ODEnet(moduleODEnet.gather_ODE_info(z_mh[rg], z_sl[rg], t[rg], W[:,rg])) for rg in ranges]
     sp_solutions = moduleODEnet_sp.calc_sp_solutions(t, ranges, ODEp_sw, Main.base_prob, 0.1; callback = PresetTimeCallback(t, Main.update_stressor_level!, save_positions=(false,false)))
 
-    plt=Plots.scatter(t[W[1,:].==1], vec(z_mh[W[1,:].==1]), c=[:blue], lab="MH (VAE)", ylim=ylim)
-    Plots.scatter!(plt, t[W[2,:].==1], vec(z_sl[W[2,:].==1]), c=[:red], lab="SL (VAE)")
-    Plots.plot!(plt, sp_solutions[1], c=[:blue :red], lab=["GHQ (ODE, sp1)" "DH (ODE, sp1)"])
-    Plots.plot!(plt, sp_solutions[2], c=[:darkblue :darkred], lab=["GHQ (ODE, sp2)" "DH (ODE, sp2)"], xlims=(0,20))
+    plt=Main.Plots.scatter(t[W[1,:].==1], vec(z_mh[W[1,:].==1]), c=[:blue], lab="mh (VAE)", ylim=ylim, markersize=markersize)
+    Main.Plots.scatter!(plt, t[W[2,:].==1], vec(z_sl[W[2,:].==1]), c=[:red], lab="sl (VAE)", markersize=markersize)
+    Main.Plots.plot!(plt, sp_solutions[1], c=[:blue :red], lab=["mh (ODE, sp1)" "sl (ODE, sp1)"], linewidth=linewidth)
+    Main.Plots.plot!(plt, sp_solutions[2], c=[:darkblue :darkred], lab=["mh (ODE, sp2)" "sl (ODE, sp2)"], xlims=(0,20), linewidth=linewidth)
     
     if savepath == nothing
         display(plt)
     else
-        savefig(plt, string(savepath, index, ".png"))
+        savefig(plt, string(savepath, index, filetype))
     end
 end
+
+# for index in indicies_meeting_minimal_sp_requirements_train
+    
+#     global z_mh, z_sl, t, W, obs = simdata[index].predVAE[1,:], simdata[index].predVAE[2,:], simdata[index].data.t, simdata[index].data.W, simdata[index].data.mnpvisno;
+#     ranges = moduleODEnet_sp.split_observation_period_at_first_baseline(obs, W)
+
+#     ODEp_sw = [ODEnet(moduleODEnet.gather_ODE_info(z_mh[rg], z_sl[rg], t[rg], W[:,rg])) for rg in ranges]
+#     sp_solutions = moduleODEnet_sp.calc_sp_solutions(t, ranges, ODEp_sw, Main.base_prob, 0.1; callback = PresetTimeCallback(t, Main.update_stressor_level!, save_positions=(false,false)))
+
+#     plt=Main.Plots.scatter(t[W[1,:].==1], vec(z_mh[W[1,:].==1]), c=[:blue], lab="mh (VAE)", ylim=ylim, markersize=markersize)
+#     Main.Plots.scatter!(plt, t[W[2,:].==1], vec(z_sl[W[2,:].==1]), c=[:red], lab="sl (VAE)", markersize=markersize)
+#     Main.Plots.plot!(plt, sp_solutions[1], c=[:blue :red], lab=["mh (ODE, sp1)" "sl (ODE, sp1)"], linewidth=linewidth)
+#     Main.Plots.plot!(plt, sp_solutions[2], c=[:darkblue :darkred], lab=["mh (ODE, sp2)" "sl (ODE, sp2)"], xlims=(0,20), linewidth=linewidth)
+    
+#     # if savepath == nothing
+#     #     display(plt)
+#     # else
+#          savefig(plt, string("figures/preliminary_figures/sp_changes5/lowL/", index, filetype))
+#     # end
+# end
 
 export train_node_sp, plot_subject_sp
 end # end of the module

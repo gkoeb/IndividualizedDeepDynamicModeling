@@ -14,11 +14,11 @@ using Parameters: @with_kw
     latent_dim = 1          # latent dimension (n_z)
     hidden_dim = 10          # hidden dimension
     verbose_freq = 5        # logging for every verbose_freq iterations
-    tblogger = false        # log training with tensorboard
+    tblogger = true        # log training with tensorboard
     talk_to_my_repl = true # switches off all prints to repl, useful when using ProgressMeter and tblogger
     return_model = true     # return encoder and decoder to global scope
     save_model = false      # save the model parameters to disk
-    save_model_object = "myVAE.bson"    # results path
+    save_model_object = "ghq_vae.bson"    # results path
     save_path = "logger/vae/"    # results path
-    tbidentifier = "myFirstRuns"    # results path
+    tbidentifier = "vae"    # results path
 end

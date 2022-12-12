@@ -12,11 +12,12 @@ using Parameters: @with_kw
     hidden_dim = 5          # hidden dimension
     shuffel_data_per_epoch = true
     verbose_freq = 10       # logging for every verbose_freq iterations
-    tblogger = false         # log training with tensorboard
+    tblogger = true         # log training with tensorboard
     talk_to_my_repl = true  # switches off all prints to repl, useful when using ProgressMeter and tblogger
     return_data = true
     save_model = false      # save the model parameters to disk
-    save_path = "logger/odenet/"    # assumes that you have TensorBoard installed, start with: tensorboard --logdir logger/odenet/
-    tbidentifier = "myFirstRuns"    # results path
+    save_path = "logger/odenet/"    # results path; tensorboard --logdir logger/baselineperiods/
+    tbidentifier = "nbruns"    # results path
     finally_plot_all_solutions = false
+    prediction_mode = true
 end
