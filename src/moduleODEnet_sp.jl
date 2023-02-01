@@ -423,25 +423,5 @@ function plot_subject_sp(ODEnet, simdata, index; savepath = nothing, ylim=(-1, 2
     end
 end
 
-# for index in indicies_meeting_minimal_sp_requirements_train
-    
-#     global z_mh, z_sl, t, W, obs = simdata[index].predVAE[1,:], simdata[index].predVAE[2,:], simdata[index].data.t, simdata[index].data.W, simdata[index].data.mnpvisno;
-#     ranges = moduleODEnet_sp.split_observation_period_at_first_baseline(obs, W)
-
-#     ODEp_sw = [ODEnet(moduleODEnet.gather_ODE_info(z_mh[rg], z_sl[rg], t[rg], W[:,rg])) for rg in ranges]
-#     sp_solutions = moduleODEnet_sp.calc_sp_solutions(t, ranges, ODEp_sw, Main.base_prob, 0.1; callback = PresetTimeCallback(t, Main.update_stressor_level!, save_positions=(false,false)))
-
-#     plt=Main.Plots.scatter(t[W[1,:].==1], vec(z_mh[W[1,:].==1]), c=[:blue], lab="mh (VAE)", ylim=ylim, markersize=markersize)
-#     Main.Plots.scatter!(plt, t[W[2,:].==1], vec(z_sl[W[2,:].==1]), c=[:red], lab="sl (VAE)", markersize=markersize)
-#     Main.Plots.plot!(plt, sp_solutions[1], c=[:blue :red], lab=["mh (ODE, sp1)" "sl (ODE, sp1)"], linewidth=linewidth)
-#     Main.Plots.plot!(plt, sp_solutions[2], c=[:darkblue :darkred], lab=["mh (ODE, sp2)" "sl (ODE, sp2)"], xlims=(0,20), linewidth=linewidth)
-    
-#     # if savepath == nothing
-#     #     display(plt)
-#     # else
-#          savefig(plt, string("figures/preliminary_figures/sp_changes5/lowL/", index, filetype))
-#     # end
-# end
-
 export train_node_sp, plot_subject_sp
 end # end of the module
