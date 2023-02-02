@@ -1,7 +1,8 @@
 module moduleVAE
 
-using Distributions, Flux, BSON, Plots, Random, MLUtils, TensorBoardLogger
+using Distributions, Flux, BSON, Plots, Random, MLUtils, TensorBoardLogger, BSON
 using Logging: with_logger
+using DrWatson: struct2dict
 include("../src/ArgsVAE.jl")
 
 """
